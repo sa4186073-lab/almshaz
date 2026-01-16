@@ -22,12 +22,18 @@
                         sans: ['Cairo', 'sans-serif'],
                     },
                     colors: {
-                        slate: {
-                            850: '#151b2e',
-                        }
+                        slate: { 850: '#151b2e', 900: '#0f172a' },
+                        amber: { 450: '#F59E0B' } 
                     },
                     animation: {
                         'spin-slow': 'spin 3s linear infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
                     }
                 }
             }
@@ -37,61 +43,55 @@
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     
-    <!-- Lucide Icons (Vanilla) -->
+    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        body { font-family: 'Cairo', sans-serif; }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        body { font-family: 'Cairo', sans-serif; background-color: #020617; overflow: hidden; }
         
-        /* Custom scrollbar for desktop/content */
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #0a0a0a; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb:hover { background: #555; }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(to right, #fbbf24, #d97706);
+        }
     </style>
 </head>
-<body class="bg-black text-white">
+<body class="text-white h-screen w-full selection:bg-amber-500/30">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
 
-        // --- ICON HELPERS ---
-        // Helper to convert Lucide vanilla icons to React components
-        // UPDATED: Uses lucide.createElement instead of toSvg to fix TypeError
+        // --- ICON HELPER ---
         const createIcon = (name) => ({ size = 24, className = "", ...props }) => {
             const iconRef = useRef(null);
-            
-            // Memoize props string to prevent unnecessary effect triggers
             const propsString = JSON.stringify(props);
 
             useEffect(() => {
                 if (iconRef.current && window.lucide && window.lucide.icons && window.lucide.icons[name]) {
                     const iconNode = window.lucide.icons[name];
-                    
-                    // Use createElement if available (modern Lucide UMD)
                     if (window.lucide.createElement) {
                         const svgElement = window.lucide.createElement(iconNode);
-                        
-                        // Set attributes
                         svgElement.setAttribute('width', size);
                         svgElement.setAttribute('height', size);
+                        if (className) svgElement.setAttribute('class', (svgElement.getAttribute('class') || '') + ' ' + className);
                         
-                        // Append class
-                        if (className) {
-                            const currentClass = svgElement.getAttribute('class') || '';
-                            svgElement.setAttribute('class', (currentClass + ' ' + className).trim());
-                        }
-
-                        // Set other props (like fill, stroke)
                         const currentProps = JSON.parse(propsString);
                         Object.keys(currentProps).forEach(key => {
-                             const value = currentProps[key];
-                             if (value !== undefined && value !== null) {
-                                 svgElement.setAttribute(key, value);
-                             }
+                             if (currentProps[key] !== undefined) svgElement.setAttribute(key, currentProps[key]);
                         });
 
                         iconRef.current.innerHTML = '';
@@ -103,80 +103,139 @@
             return <span ref={iconRef} style={{ display: 'inline-flex', alignItems: 'center' }} />;
         };
 
-        // Map Icons used in the app
-        const Wand2 = createIcon("Wand2");
-        const Instagram = createIcon("Instagram");
-        const Twitter = createIcon("Twitter");
-        const Linkedin = createIcon("Linkedin");
-        const Facebook = createIcon("Facebook");
-        const Youtube = createIcon("Youtube");
-        const Music = createIcon("Music");
-        const Copy = createIcon("Copy");
-        const Check = createIcon("Check");
-        const Sparkles = createIcon("Sparkles");
-        const Loader2 = createIcon("Loader2");
-        const Scroll = createIcon("Scroll");
-        const Zap = createIcon("Zap");
-        const Star = createIcon("Star");
-        const Flame = createIcon("Flame");
-        const Feather = createIcon("Feather");
-        const Volume2 = createIcon("Volume2");
-        const VolumeX = createIcon("VolumeX");
-        const X = createIcon("X");
-        const Home = createIcon("Home");
-        const HistoryIcon = createIcon("History"); // Aliased
-        const ChevronLeft = createIcon("ChevronLeft");
-        const Ghost = createIcon("Ghost");
-        const Pin = createIcon("Pin");
-        const AtSign = createIcon("AtSign");
-        const MessageCircle = createIcon("MessageCircle");
-        const LayoutTemplate = createIcon("LayoutTemplate");
-        const FileText = createIcon("FileText");
-        const Film = createIcon("Film");
-        const Layers = createIcon("Layers");
-        const ImageIcon = createIcon("Image"); // Aliased
-        const Heart = createIcon("Heart");
-        const Plus = createIcon("Plus");
-        const Eye = createIcon("Eye");
-        const Type = createIcon("Type");
-        const MoreHorizontal = createIcon("MoreHorizontal");
-        const Share = createIcon("Share");
-        const Repeat = createIcon("Repeat");
-        const Book = createIcon("Book");
-        const Key = createIcon("Key");
+        // Icons
+        const Icons = {
+            Wand2: createIcon("Wand2"),
+            Instagram: createIcon("Instagram"),
+            Twitter: createIcon("Twitter"),
+            Linkedin: createIcon("Linkedin"),
+            Facebook: createIcon("Facebook"),
+            Youtube: createIcon("Youtube"),
+            Music: createIcon("Music"),
+            Copy: createIcon("Copy"),
+            Check: createIcon("Check"),
+            Sparkles: createIcon("Sparkles"),
+            Loader2: createIcon("Loader2"),
+            Zap: createIcon("Zap"),
+            Star: createIcon("Star"),
+            Flame: createIcon("Flame"),
+            Feather: createIcon("Feather"),
+            Volume2: createIcon("Volume2"),
+            VolumeX: createIcon("VolumeX"),
+            X: createIcon("X"),
+            History: createIcon("History"),
+            MessageCircle: createIcon("MessageCircle"),
+            LayoutTemplate: createIcon("LayoutTemplate"),
+            FileText: createIcon("FileText"),
+            Film: createIcon("Film"),
+            Layers: createIcon("Layers"),
+            Image: createIcon("Image"),
+            Heart: createIcon("Heart"),
+            Plus: createIcon("Plus"),
+            Eye: createIcon("Eye"),
+            Type: createIcon("Type"),
+            Share: createIcon("Share"),
+            Book: createIcon("Book"),
+            Key: createIcon("Key"),
+            Trash2: createIcon("Trash2"),
+            Maximize2: createIcon("Maximize2"),
+            Bot: createIcon("Bot"),
+        };
 
-        // --- MAIN APP COMPONENT ---
-        const SocialWizardMobile = () => {
-            // State for API Key
+        // --- PLATFORM CONFIG ---
+        const platforms = [
+            { id: 'instagram', name: 'انستغرام', icon: Icons.Instagram, color: 'text-fuchsia-400', border: 'hover:border-fuchsia-500', bg: 'hover:bg-fuchsia-950/30' },
+            { id: 'tiktok', name: 'تيك توك', icon: Icons.Music, color: 'text-pink-400', border: 'hover:border-pink-500', bg: 'hover:bg-pink-950/30' },
+            { id: 'twitter', name: 'تويتر (X)', icon: Icons.Twitter, color: 'text-cyan-400', border: 'hover:border-cyan-500', bg: 'hover:bg-cyan-950/30' },
+            { id: 'youtube', name: 'يوتيوب', icon: Icons.Youtube, color: 'text-red-400', border: 'hover:border-red-500', bg: 'hover:bg-red-950/30' },
+            { id: 'linkedin', name: 'لينكد إن', icon: Icons.Linkedin, color: 'text-blue-400', border: 'hover:border-blue-500', bg: 'hover:bg-blue-950/30' },
+            { id: 'facebook', name: 'فيسبوك', icon: Icons.Facebook, color: 'text-indigo-400', border: 'hover:border-indigo-500', bg: 'hover:bg-indigo-950/30' },
+            { id: 'whatsapp', name: 'واتساب', icon: Icons.MessageCircle, color: 'text-green-400', border: 'hover:border-green-500', bg: 'hover:bg-green-950/30' },
+        ];
+
+        const contentTypes = [
+            { id: 'post', name: 'منشور', icon: Icons.FileText },
+            { id: 'tweet', name: 'تغريدة', icon: Icons.Twitter },
+            { id: 'thread', name: 'سلسلة', icon: Icons.LayoutTemplate },
+            { id: 'story', name: 'قصة', icon: Icons.Layers },
+            { id: 'reel', name: 'سيناريو ريلز', icon: Icons.Film },
+            { id: 'caption', name: 'كابشن صورة', icon: Icons.Image },
+        ];
+
+        const tones = [
+            { id: 'professional', name: 'رسمي' },
+            { id: 'funny', name: 'فكاهي' },
+            { id: 'engaging', name: 'تفاعلي' },
+            { id: 'inspirational', name: 'ملهم' },
+            { id: 'educational', name: 'تعليمي' },
+            { id: 'urgent', name: 'عاجل' },
+        ];
+
+        // --- COMPONENTS ---
+        
+        const PlatformPreview = ({ content, platformId }) => {
+            const isTwitter = platformId === 'twitter';
+            const isFacebook = platformId === 'facebook';
+            
+            return (
+                <div className="w-full bg-white text-black rounded-lg overflow-hidden shadow-2xl text-left border border-gray-200" dir="rtl">
+                    <div className={`p-3 flex items-center gap-3 border-b border-gray-100 ${isFacebook ? 'bg-[#1877F2] text-white' : 'bg-white'}`}>
+                        <div className={`w-8 h-8 rounded-full ${isFacebook ? 'bg-white/20' : 'bg-gray-200'} flex items-center justify-center shrink-0`}>
+                            <Icons.Bot size={16} className={isFacebook ? "text-white" : "text-gray-500"} />
+                        </div>
+                        <div>
+                            <p className={`text-xs font-bold ${isFacebook ? 'text-white' : 'text-gray-900'}`}>المشعوذ الرقمي</p>
+                            <p className={`text-[10px] ${isFacebook ? 'text-white/80' : 'text-gray-500'}`}>الآن · <Icons.Bot size={10} className="inline" /></p>
+                        </div>
+                    </div>
+                    <div className={`p-4 ${isTwitter ? 'text-lg' : 'text-sm'} text-gray-800 whitespace-pre-line leading-relaxed`}>
+                        {content || "المحتوى سيظهر هنا..."}
+                    </div>
+                    {!isTwitter && (
+                        <div className="w-full h-48 bg-gray-100 flex flex-col items-center justify-center text-gray-400 gap-2">
+                            <Icons.Image size={32} />
+                            <span className="text-xs">مساحة الوسائط (صورة/فيديو)</span>
+                        </div>
+                    )}
+                    <div className="p-3 border-t border-gray-100 flex items-center justify-between text-gray-500">
+                        <div className="flex gap-4">
+                            <Icons.Heart size={20} />
+                            <Icons.MessageCircle size={20} />
+                            <Icons.Share size={20} />
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const SocialWizardWeb = () => {
+            // State
             const [apiKey, setApiKey] = useState(() => localStorage.getItem('gemini_api_key') || "");
             const [showSettings, setShowSettings] = useState(!localStorage.getItem('gemini_api_key'));
-
-            const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-            // State
-            const [activeTab, setActiveTab] = useState('create');
-            const [grimoireTab, setGrimoireTab] = useState('history');
-            const [showResult, setShowResult] = useState(false);
-            const [resultViewMode, setResultViewMode] = useState('text');
             
-            // Generation State
+            // Inputs
             const [platform, setPlatform] = useState('instagram');
-            const [contentType, setContentType] = useState('post'); 
+            const [contentType, setContentType] = useState('post');
             const [tone, setTone] = useState('engaging');
-            const [showCustomTone, setShowCustomTone] = useState(false);
             const [customTone, setCustomTone] = useState('');
             const [topic, setTopic] = useState('');
-            const [generatedContent, setGeneratedContent] = useState('');
             
-            // App State
+            // Outputs
+            const [generatedContent, setGeneratedContent] = useState('');
             const [isLoading, setIsLoading] = useState(false);
             const [error, setError] = useState('');
-            const [copied, setCopied] = useState(false);
+            const [viewMode, setViewMode] = useState('text'); // text | preview
+            
+            // Data
             const [history, setHistory] = useState([]);
             const [favorites, setFavorites] = useState([]);
-            const [isMuted, setIsMuted] = useState(false);
+            const [activeSidebarTab, setActiveSidebarTab] = useState('history');
 
-            // Load Persistence
+            // Audio
+            const [isMuted, setIsMuted] = useState(false);
+            const audioCtxRef = useRef(null);
+
+            // Init Data
             useEffect(() => {
                 const savedFavs = localStorage.getItem('socialWizardFavs');
                 if (savedFavs) setFavorites(JSON.parse(savedFavs));
@@ -185,647 +244,403 @@
                 if (savedHist) setHistory(JSON.parse(savedHist));
             }, []);
 
-            // Save Persistence
-            useEffect(() => {
-                localStorage.setItem('socialWizardFavs', JSON.stringify(favorites));
-            }, [favorites]);
+            // Save Data
+            useEffect(() => { localStorage.setItem('socialWizardFavs', JSON.stringify(favorites)); }, [favorites]);
+            useEffect(() => { localStorage.setItem('socialWizardHist', JSON.stringify(history)); }, [history]);
 
-            useEffect(() => {
-                localStorage.setItem('socialWizardHist', JSON.stringify(history));
-            }, [history]);
-
-            // Save API Key
-            const saveApiKey = (key) => {
-                setApiKey(key);
-                localStorage.setItem('gemini_api_key', key);
-                setShowSettings(false);
-            };
-
-            // Audio Context Ref
-            const audioCtxRef = useRef(null);
-
-            // Initialize Audio
-            const initAudio = () => {
-                if (!audioCtxRef.current) {
-                const AudioContext = window.AudioContext || window.webkitAudioContext;
-                if (AudioContext) {
-                    audioCtxRef.current = new AudioContext();
-                }
-                }
-                if (audioCtxRef.current?.state === 'suspended') {
-                audioCtxRef.current.resume();
-                }
-            };
-
-            // Sound Synthesizer
+            // Audio System
             const playSound = (type) => {
                 if (isMuted) return;
-                initAudio();
+                if (!audioCtxRef.current) audioCtxRef.current = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtxRef.current.state === 'suspended') audioCtxRef.current.resume();
                 
                 const ctx = audioCtxRef.current;
-                if (!ctx) return;
-
                 const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
 
                 if (type === 'click') {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, now);
-                osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
-                gain.gain.setValueAtTime(0.05, now);
-                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                osc.start(now);
-                osc.stop(now + 0.1);
-                } 
-                else if (type === 'cast') {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(200, now);
-                osc.frequency.linearRampToValueAtTime(600, now + 0.3);
-                gain.gain.setValueAtTime(0.05, now);
-                gain.gain.linearRampToValueAtTime(0, now + 0.3);
-                osc.start(now);
-                osc.stop(now + 0.3);
-                }
-                else if (type === 'success') {
-                const notes = [523.25, 659.25, 783.99, 1046.50]; 
-                notes.forEach((freq, i) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
                     osc.type = 'sine';
-                    osc.frequency.value = freq;
-                    const time = now + (i * 0.08);
-                    gain.gain.setValueAtTime(0, time);
-                    gain.gain.linearRampToValueAtTime(0.05, time + 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.4);
-                    osc.start(time);
-                    osc.stop(time + 0.4);
-                });
-                }
-                else if (type === 'heart') {
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(600, now);
-                osc.frequency.linearRampToValueAtTime(800, now + 0.1);
-                gain.gain.setValueAtTime(0.05, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-                osc.start(now);
-                osc.stop(now + 0.2);
+                    osc.frequency.setValueAtTime(800, now);
+                    osc.frequency.exponentialRampToValueAtTime(400, now + 0.1);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                    osc.start(now); osc.stop(now + 0.1);
+                } else if (type === 'magic') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(300, now);
+                    osc.frequency.linearRampToValueAtTime(600, now + 0.5);
+                    gain.gain.setValueAtTime(0, now);
+                    gain.gain.linearRampToValueAtTime(0.1, now + 0.1);
+                    gain.gain.linearRampToValueAtTime(0, now + 0.5);
+                    osc.start(now); osc.stop(now + 0.5);
+                } else if (type === 'success') {
+                    [523.25, 659.25, 783.99].forEach((freq, i) => {
+                        const o = ctx.createOscillator();
+                        const g = ctx.createGain();
+                        o.connect(g); g.connect(ctx.destination);
+                        o.type = 'sine'; o.frequency.value = freq;
+                        g.gain.setValueAtTime(0.03, now + i*0.1);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + i*0.1 + 0.3);
+                        o.start(now + i*0.1); o.stop(now + i*0.1 + 0.3);
+                    });
                 }
             };
 
-            // Configuration
-            const platforms = [
-                { id: 'instagram', name: 'انستغرام', icon: Instagram, color: 'text-fuchsia-400', border: 'border-fuchsia-500', bg: 'bg-fuchsia-950/40' },
-                { id: 'tiktok', name: 'تيك توك', icon: Music, color: 'text-pink-400', border: 'border-pink-500', bg: 'bg-pink-950/40' },
-                { id: 'twitter', name: 'تويتر (X)', icon: Twitter, color: 'text-cyan-400', border: 'border-cyan-500', bg: 'bg-cyan-950/40' },
-                { id: 'youtube', name: 'يوتيوب', icon: Youtube, color: 'text-red-400', border: 'border-red-500', bg: 'bg-red-950/40' },
-                { id: 'linkedin', name: 'لينكد إن', icon: Linkedin, color: 'text-blue-400', border: 'border-blue-500', bg: 'bg-blue-950/40' },
-                { id: 'facebook', name: 'فيسبوك', icon: Facebook, color: 'text-indigo-400', border: 'border-indigo-500', bg: 'bg-indigo-950/40' },
-                { id: 'whatsapp', name: 'واتساب', icon: MessageCircle, color: 'text-green-400', border: 'border-green-500', bg: 'bg-green-950/40' },
-            ];
-
-            const contentTypes = [
-                { id: 'post', name: 'منشور عادي', icon: FileText },
-                { id: 'tweet', name: 'تغريدة', icon: Twitter },
-                { id: 'thread', name: 'سلسلة', icon: LayoutTemplate },
-                { id: 'story', name: 'قصة', icon: Layers },
-                { id: 'reel', name: 'سيناريو', icon: Film },
-                { id: 'caption', name: 'كابشن', icon: ImageIcon },
-            ];
-
-            const tones = [
-                { id: 'professional', name: 'رسمي' },
-                { id: 'funny', name: 'مضحك' },
-                { id: 'engaging', name: 'جذاب' },
-                { id: 'inspirational', name: 'ملهم' },
-                { id: 'informative', name: 'تعليمي' },
-            ];
-
-            // Actions
             const handleGenerate = async () => {
-                if (!apiKey) {
-                    setShowSettings(true);
-                    return;
-                }
-                if (!topic.trim()) {
-                    setError('يرجى كتابة موضوع المنشور');
-                    playSound('click'); 
-                    return;
-                }
+                if (!apiKey) { setShowSettings(true); return; }
+                if (!topic.trim()) { setError('ما هو الموضوع؟'); playSound('click'); return; }
 
-                playSound('cast');
+                playSound('magic');
                 setIsLoading(true);
                 setError('');
                 
-                if (document.activeElement instanceof HTMLElement) {
-                    document.activeElement.blur();
-                }
-
                 try {
-                const selectedTone = showCustomTone ? customTone : tones.find(t => t.id === tone)?.name;
+                    const selectedTone = customTone || tones.find(t => t.id === tone)?.name;
+                    const platformName = platforms.find(p => p.id === platform)?.name;
+                    const contentTypeName = contentTypes.find(c => c.id === contentType)?.name;
 
-                const systemPrompt = `
-                    أنت ساحر كلمات وخبير تسويق رقمي في عالم وسائل التواصل الاجتماعي.
-                    مهمتك هي صياغة محتوى إبداعي وجذاب للمنصة المحددة باللغة العربية.
+                    const systemPrompt = `أنت خبير وسائل تواصل اجتماعي. اكتب محتوى ${contentTypeName} لمنصة ${platformName} باللهجة أو اللغة المناسبة.`;
+                    const userPrompt = `النبرة: ${selectedTone}\nالموضوع: ${topic}\n\nاكتب محتوى إبداعي وجذاب مع هاشتاجات.`;
+
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            contents: [{ parts: [{ text: userPrompt }] }],
+                            systemInstruction: { parts: [{ text: systemPrompt }] }
+                        }),
+                    });
+
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error?.message || 'Error');
                     
-                    القواعد العامة:
-                    1. اللغة: عربية فصحى قوية أو لهجة بيضاء محبوبة (حسب النبرة).
-                    2. التنسيق: استخدم الفقرات القصيرة بذكاء.
-                    3. الهاشتاجات: أضف هاشتاجات قوية ومناسبة في النهاية.
-                    
-                    قواعد خاصة بنوع المحتوى:
-                    - إذا كان "سيناريو فيديو": قسمه إلى (مقدمة بصرية، النص الصوتي، الخاتمة).
-                    - إذا كان "تغريدة": التزم بحدود 280 حرف، اجعلها مركزة وقوية.
-                    - إذا كان "سلسلة": قسم المحتوى إلى تغريدات مرقمة (1/5، 2/5...) مترابطة.
-                    - إذا كان "قصة": اجعل النص قصيراً جداً وجذاباً بصرياً ومناسباً لمدة 15 ثانية.
-                `;
-
-                const userPrompt = `
-                    المنصة: ${platform}
-                    نوع المحتوى: ${contentTypes.find(c => c.id === contentType)?.name}
-                    النبرة: ${selectedTone}
-                    الموضوع: ${topic}
-                    
-                    اكتب المحتوى الآن:
-                `;
-
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                    contents: [{ parts: [{ text: userPrompt }] }],
-                    systemInstruction: { parts: [{ text: systemPrompt }] }
-                    }),
-                });
-
-                if (!response.ok) throw new Error('فشل الاتصال: تأكد من مفتاح API');
-
-                const data = await response.json();
-                const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-                if (text) {
-                    setGeneratedContent(text);
-                    const newItem = {
-                    id: Date.now(),
-                    platform,
-                    contentType,
-                    topic,
-                    preview: text.substring(0, 50) + '...',
-                    fullText: text,
-                    date: new Date().toISOString()
-                    };
-                    setHistory(prev => [newItem, ...prev].slice(0, 20));
-                    playSound('success');
-                    setShowResult(true);
-                    setResultViewMode('text');
-                } else {
-                    throw new Error('لم يتم استلام نص');
-                }
-
+                    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    if (text) {
+                        setGeneratedContent(text);
+                        const newItem = { id: Date.now(), platform, contentType, topic, fullText: text, date: new Date().toISOString() };
+                        setHistory(prev => [newItem, ...prev].slice(0, 50));
+                        playSound('success');
+                    }
                 } catch (err) {
-                setError(err.message || 'حدث خطأ، حاول مرة أخرى');
+                    setError('حدث خطأ. تأكد من المفتاح أو الاتصال.');
                 } finally {
-                setIsLoading(false);
+                    setIsLoading(false);
                 }
-            };
-
-            const copyToClipboard = () => {
-                navigator.clipboard.writeText(generatedContent);
-                setCopied(true);
-                playSound('click');
-                setTimeout(() => setCopied(false), 2000);
             };
 
             const toggleFavorite = (item) => {
-                const isFav = favorites.find(f => f.id === item.id);
-                if (isFav) {
+                const exists = favorites.find(f => f.id === item.id);
+                if (exists) {
                     setFavorites(prev => prev.filter(f => f.id !== item.id));
-                    playSound('click');
                 } else {
                     setFavorites(prev => [item, ...prev]);
-                    playSound('heart');
+                    playSound('success');
                 }
             };
 
-            const loadItem = (item) => {
-                setGeneratedContent(item.fullText);
+            const restoreItem = (item) => {
                 setTopic(item.topic);
                 setPlatform(item.platform);
-                if(item.contentType) setContentType(item.contentType);
+                if (item.contentType) setContentType(item.contentType);
+                setGeneratedContent(item.fullText);
                 playSound('click');
-                setShowResult(true);
-                setResultViewMode('text');
             };
 
-            const closeResult = () => {
-                setShowResult(false);
-                playSound('close');
-            };
-
-            const switchTab = (tab) => {
-                setActiveTab(tab);
-                playSound('click');
+            const deleteItem = (e, id, listType) => {
+                e.stopPropagation();
+                if(listType === 'history') setHistory(h => h.filter(i => i.id !== id));
+                else setFavorites(f => f.filter(i => i.id !== id));
             }
 
-            // --- PREVIEW COMPONENTS ---
-            const PlatformPreview = ({ content, platformId }) => {
-                const isTwitter = platformId === 'twitter';
-                const isFacebook = platformId === 'facebook';
-                
-                return (
-                    <div className="w-full bg-white text-black rounded-lg overflow-hidden shadow-lg text-left" dir="rtl">
-                        <div className={`p-3 flex items-center gap-3 border-b border-gray-100 ${isFacebook ? 'bg-[#1877F2] text-white' : 'bg-white'}`}>
-                            <div className={`w-8 h-8 rounded-full ${isFacebook ? 'bg-white/20' : 'bg-gray-200'} flex items-center justify-center`}>
-                                <div className="text-black font-bold">@</div>
-                            </div>
-                            <div>
-                                <p className={`text-xs font-bold ${isFacebook ? 'text-white' : 'text-gray-900'}`}>اسم المستخدم</p>
-                                <p className={`text-[10px] ${isFacebook ? 'text-white/80' : 'text-gray-500'}`}>الآن</p>
-                            </div>
-                        </div>
-                        <div className={`p-4 ${isTwitter ? 'text-lg' : 'text-sm'} text-gray-800 whitespace-pre-line leading-relaxed`}>
-                            {content}
-                        </div>
-                        {!isTwitter && (
-                            <div className="w-full h-48 bg-gray-100 flex items-center justify-center text-gray-400">
-                                <ImageIcon size={32} />
-                            </div>
-                        )}
-                        <div className="p-3 border-t border-gray-100 flex items-center justify-between text-gray-500">
-                            <div className="flex gap-4">
-                                <Heart size={20} />
-                                <MessageCircle size={20} />
-                                <Share size={20} />
-                            </div>
-                        </div>
-                    </div>
-                );
-            };
-
-            // API Key Modal
-            if (showSettings) {
-                return (
-                    <div className="flex flex-col items-center justify-center h-screen p-6 bg-black text-center animate-in fade-in">
-                        <div className="w-16 h-16 rounded-2xl bg-[#0a0a0a] border border-white/10 flex items-center justify-center shadow-lg mb-6">
-                            <Key size={32} className="text-amber-400" />
-                        </div>
-                        <h1 className="text-2xl font-bold mb-2 text-white">إعدادات المفتاح</h1>
-                        <p className="text-slate-400 mb-6 text-sm">للبدء، يرجى إدخال مفتاح Google Gemini API الخاص بك.</p>
-                        
-                        <input 
-                            type="password" 
-                            placeholder="AIzaSy..." 
-                            className="w-full max-w-sm p-4 rounded-xl bg-[#111] border border-white/10 text-white mb-4 focus:border-amber-500 focus:outline-none"
-                            onChange={(e) => setApiKey(e.target.value)}
-                            value={apiKey}
-                        />
-                        
-                        <button 
-                            onClick={() => saveApiKey(apiKey)}
-                            className="w-full max-w-sm py-4 rounded-xl bg-gradient-to-r from-amber-400 to-orange-600 text-black font-bold shadow-lg shadow-amber-900/40"
-                        >
-                            حفظ وبدء السحر
-                        </button>
-                        <p className="mt-8 text-[10px] text-slate-600">يتم حفظ المفتاح محلياً في متصفحك فقط.</p>
-                    </div>
-                );
-            }
-
+            // --- RENDER ---
             return (
-                <div className="flex flex-col h-screen max-w-md mx-auto bg-black border-x border-white/5 shadow-2xl relative">
+                <div className="flex flex-col h-screen w-full bg-[#020617] text-slate-200 overflow-hidden">
                     
                     {/* Background Ambience */}
-                    <div className="fixed inset-0 z-0 pointer-events-none max-w-md mx-auto overflow-hidden">
-                        <div className="absolute top-[-20%] left-[-20%] w-[300px] h-[300px] bg-indigo-900/10 rounded-full blur-[80px]"></div>
-                        <div className="absolute bottom-[-10%] right-[-10%] w-[250px] h-[250px] bg-purple-900/10 rounded-full blur-[80px]"></div>
+                    <div className="fixed inset-0 z-0 pointer-events-none">
+                        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-amber-500/5 rounded-full blur-[120px]"></div>
+                        <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-500/5 rounded-full blur-[120px]"></div>
                     </div>
 
-                    {/* Top Header */}
-                    <header className="shrink-0 z-20 px-5 py-4 flex items-center justify-between bg-black/90 backdrop-blur-md border-b border-white/5">
+                    {/* Navbar */}
+                    <header className="shrink-0 h-16 border-b border-white/5 bg-black/40 backdrop-blur-md flex items-center justify-between px-6 z-20">
                         <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-[#0a0a0a] border border-white/10 flex items-center justify-center shadow-lg">
-                                <Wand2 size={20} className="text-amber-400" />
+                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-900/20">
+                                <Icons.Wand2 size={18} className="text-black" />
                             </div>
-                            <div>
-                                <h1 className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-500 leading-none pb-1">
-                                    المشعوذ
-                                </h1>
-                                <p className="text-[10px] font-bold text-slate-500 tracking-widest uppercase">Social AI</p>
-                            </div>
+                            <h1 className="text-xl font-bold tracking-tight">
+                                <span className="text-white">Social</span>
+                                <span className="gradient-text">Wizard</span>
+                            </h1>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-3">
                              <button 
-                                onClick={() => setShowSettings(true)}
-                                className="p-2 rounded-full border bg-[#0a0a0a] border-white/10 text-slate-500 hover:text-white"
+                                onClick={() => setIsMuted(!isMuted)}
+                                className={`p-2 rounded-lg transition-colors ${isMuted ? 'text-slate-600' : 'text-amber-400 bg-amber-400/10'}`}
                             >
-                                <Key size={18} />
+                                {isMuted ? <Icons.VolumeX size={18} /> : <Icons.Volume2 size={18} />}
                             </button>
                             <button 
-                                onClick={() => { setIsMuted(!isMuted); playSound('click'); }}
-                                className={`p-2 rounded-full border transition-all ${isMuted ? 'bg-[#0a0a0a] border-white/10 text-slate-500' : 'bg-white/5 border-white/20 text-indigo-300'}`}
+                                onClick={() => setShowSettings(true)} 
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${!apiKey ? 'bg-red-500/10 border-red-500 text-red-400 animate-pulse' : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'}`}
                             >
-                                {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                                <Icons.Key size={14} />
+                                <span>{apiKey ? 'المفتاح محفوظ' : 'إعداد المفتاح'}</span>
                             </button>
                         </div>
                     </header>
 
-                    {/* Main Content Area */}
-                    <main className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 pb-24 no-scrollbar">
+                    {/* Main Grid */}
+                    <main className="flex-1 flex overflow-hidden relative z-10">
                         
-                        {activeTab === 'create' && (
-                            <div className="p-5 space-y-8 animate-in fade-in zoom-in-95 duration-300">
-                                <section>
-                                    <h2 className="text-sm font-bold text-slate-400 mb-3 flex items-center gap-2">
-                                        <Flame size={14} className="text-amber-500" /> اختر المنصة
-                                    </h2>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {platforms.map((p) => (
+                        {/* LEFT SIDEBAR: History & Favorites */}
+                        <aside className="hidden lg:flex flex-col w-80 border-l border-white/5 bg-[#050b1d]/50 backdrop-blur-sm">
+                            <div className="p-4 border-b border-white/5 flex gap-2">
+                                <button 
+                                    onClick={() => setActiveSidebarTab('history')}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${activeSidebarTab === 'history' ? 'bg-white/10 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                                >
+                                    <Icons.History size={14} /> السجل
+                                </button>
+                                <button 
+                                    onClick={() => setActiveSidebarTab('favorites')}
+                                    className={`flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-all ${activeSidebarTab === 'favorites' ? 'bg-amber-500/10 text-amber-400' : 'text-slate-500 hover:text-slate-300'}`}
+                                >
+                                    <Icons.Star size={14} /> المحفوظات
+                                </button>
+                            </div>
+                            
+                            <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                                {(activeSidebarTab === 'history' ? history : favorites).length === 0 && (
+                                    <div className="text-center py-10 text-slate-600 text-sm">
+                                        لا يوجد عناصر هنا بعد
+                                    </div>
+                                )}
+                                {(activeSidebarTab === 'history' ? history : favorites).map(item => (
+                                    <div 
+                                        key={item.id}
+                                        onClick={() => restoreItem(item)}
+                                        className="group p-3 rounded-xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/10 transition-all cursor-pointer relative"
+                                    >
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="flex items-center gap-2">
+                                                {platforms.find(p => p.id === item.platform)?.icon({ size: 14, className: 'text-slate-400' })}
+                                                <span className="text-[10px] font-bold text-slate-500 uppercase">{item.platform}</span>
+                                            </div>
+                                            <button 
+                                                onClick={(e) => deleteItem(e, item.id, activeSidebarTab)}
+                                                className="text-slate-700 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <Icons.Trash2 size={14} />
+                                            </button>
+                                        </div>
+                                        <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">{item.fullText}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </aside>
+
+                        {/* CENTER: The Lab (Inputs) */}
+                        <section className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scroll">
+                            <div className="max-w-2xl mx-auto space-y-8">
+                                
+                                {/* Platform Select */}
+                                <div>
+                                    <label className="flex items-center gap-2 text-sm font-bold text-slate-400 mb-4">
+                                        <Icons.Flame size={16} className="text-amber-500" />
+                                        اختر المنصة
+                                    </label>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        {platforms.map(p => (
                                             <button
                                                 key={p.id}
                                                 onClick={() => { setPlatform(p.id); playSound('click'); }}
-                                                className={`flex flex-col items-center justify-center gap-2 p-3 rounded-2xl border transition-all aspect-square ${
-                                                    platform === p.id
-                                                    ? `${p.bg} ${p.border} shadow-[0_0_15px_rgba(0,0,0,0.5)] scale-105`
-                                                    : 'bg-[#0a0a0a] border-white/5 opacity-80 hover:bg-[#111]'
-                                                }`}
+                                                className={`relative group p-3 rounded-xl border transition-all duration-300 flex flex-col items-center gap-2 ${platform === p.id ? `bg-white/10 border-white text-white shadow-[0_0_20px_rgba(255,255,255,0.1)]` : `bg-[#0f172a] border-white/5 text-slate-500 ${p.bg} ${p.border}`}`}
                                             >
-                                                {/* Render the icon component */}
-                                                <p.icon size={24} className={platform === p.id ? 'text-white' : 'text-slate-500'} />
-                                                <span className={`text-[10px] font-bold ${platform === p.id ? 'text-white' : 'text-slate-500'}`}>{p.name}</span>
+                                                <p.icon size={24} className={platform === p.id ? 'text-white' : p.color} />
+                                                <span className="text-xs font-bold">{p.name}</span>
                                             </button>
                                         ))}
                                     </div>
-                                </section>
+                                </div>
 
-                                <section>
-                                    <h2 className="text-sm font-bold text-slate-400 mb-3 flex items-center gap-2">
-                                        <LayoutTemplate size={14} className="text-amber-500" /> نوع المحتوى
-                                    </h2>
-                                    <div className="flex overflow-x-auto gap-3 pb-2 no-scrollbar">
-                                        {contentTypes.map((c) => (
-                                            <button
-                                                key={c.id}
-                                                onClick={() => { setContentType(c.id); playSound('click'); }}
-                                                className={`flex items-center gap-2 px-4 py-3 rounded-xl whitespace-nowrap text-xs font-bold transition-all border shrink-0 ${
-                                                    contentType === c.id
-                                                    ? 'bg-white text-black border-white shadow-lg scale-105'
-                                                    : 'bg-[#0a0a0a] text-slate-400 border-white/5 hover:bg-[#111]'
-                                                }`}
-                                            >
-                                                <c.icon size={14} />
-                                                {c.name}
-                                            </button>
-                                        ))}
+                                {/* Type & Tone Row */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-bold text-slate-400 mb-4">
+                                            <Icons.LayoutTemplate size={16} className="text-amber-500" />
+                                            نوع المحتوى
+                                        </label>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {contentTypes.map(c => (
+                                                <button
+                                                    key={c.id}
+                                                    onClick={() => { setContentType(c.id); playSound('click'); }}
+                                                    className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs font-bold transition-all border ${contentType === c.id ? 'bg-amber-500 text-black border-amber-500' : 'bg-white/5 text-slate-400 border-white/5 hover:bg-white/10'}`}
+                                                >
+                                                    <c.icon size={14} /> {c.name}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </section>
 
-                                <section>
-                                    <h2 className="text-sm font-bold text-slate-400 mb-3 flex items-center gap-2">
-                                        <Zap size={14} className="text-amber-500" /> نبرة الصوت
-                                    </h2>
-                                    
-                                    {!showCustomTone ? (
+                                    <div>
+                                        <label className="flex items-center gap-2 text-sm font-bold text-slate-400 mb-4">
+                                            <Icons.Zap size={16} className="text-amber-500" />
+                                            نبرة الصوت
+                                        </label>
                                         <div className="flex flex-wrap gap-2">
-                                            {tones.map((t) => (
+                                            {tones.map(t => (
                                                 <button
                                                     key={t.id}
-                                                    onClick={() => { setTone(t.id); playSound('click'); }}
-                                                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${
-                                                        tone === t.id
-                                                        ? 'bg-amber-500 text-black border-amber-500 shadow-lg shadow-amber-500/20 scale-105'
-                                                        : 'bg-[#0a0a0a] text-slate-400 border-white/5 hover:bg-[#111]'
-                                                    }`}
+                                                    onClick={() => { setTone(t.id); setCustomTone(''); playSound('click'); }}
+                                                    className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all border ${tone === t.id && !customTone ? 'bg-indigo-500 text-white border-indigo-500' : 'bg-white/5 text-slate-400 border-white/5 hover:bg-white/10'}`}
                                                 >
                                                     {t.name}
                                                 </button>
                                             ))}
-                                            <button
-                                                onClick={() => { setShowCustomTone(true); playSound('click'); }}
-                                                className="px-3 py-2 rounded-full text-xs font-bold bg-[#111] text-indigo-400 border border-indigo-500/30 hover:bg-indigo-900/20 flex items-center gap-1"
-                                            >
-                                                <Plus size={14} /> خاص
-                                            </button>
-                                        </div>
-                                    ) : (
-                                        <div className="flex gap-2 animate-in fade-in slide-in-from-right-5">
                                             <input 
-                                                type="text" 
+                                                type="text"
+                                                placeholder="مخصص..."
                                                 value={customTone}
-                                                onChange={(e) => setCustomTone(e.target.value)}
-                                                placeholder="مثلاً: ساخر، حزين، حماسي..."
-                                                className="flex-1 px-4 py-2 rounded-xl bg-[#0a0a0a] border border-indigo-500 text-white text-xs focus:outline-none"
-                                                autoFocus
+                                                onChange={(e) => { setCustomTone(e.target.value); setTone(''); }}
+                                                className={`w-full mt-2 px-3 py-2 rounded-lg bg-black border text-xs text-white focus:outline-none focus:border-indigo-500 ${customTone ? 'border-indigo-500' : 'border-white/10'}`}
                                             />
-                                            <button 
-                                                onClick={() => setShowCustomTone(false)}
-                                                className="p-2 rounded-xl bg-[#111] text-slate-400 border border-white/10"
-                                            >
-                                                <X size={16} />
-                                            </button>
                                         </div>
-                                    )}
-                                </section>
+                                    </div>
+                                </div>
 
-                                <section>
-                                    <h2 className="text-sm font-bold text-slate-400 mb-3 flex items-center gap-2">
-                                        <Feather size={14} className="text-amber-500" /> الموضوع
-                                    </h2>
-                                    <div className="relative group">
+                                {/* Topic Input */}
+                                <div>
+                                    <label className="flex items-center gap-2 text-sm font-bold text-slate-400 mb-4">
+                                        <Icons.Feather size={16} className="text-amber-500" />
+                                        الموضوع / الفكرة
+                                    </label>
+                                    <div className="relative">
                                         <textarea
                                             value={topic}
                                             onChange={(e) => setTopic(e.target.value)}
-                                            placeholder="اكتب هنا..."
-                                            className="w-full h-32 p-4 rounded-2xl bg-[#0a0a0a] border border-white/10 text-slate-100 placeholder:text-slate-700 focus:outline-none focus:border-indigo-500/50 focus:bg-[#0f0f0f] transition-all resize-none text-base font-medium leading-relaxed"
+                                            placeholder="عن ماذا تريد أن تتحدث اليوم؟"
+                                            className="w-full h-32 p-4 rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-slate-600 focus:outline-none focus:border-amber-500/50 focus:bg-white/10 transition-all resize-none leading-relaxed"
                                         ></textarea>
-                                        <div className="absolute bottom-3 left-3 text-[10px] text-slate-600">
-                                            {topic.length} حرف
-                                        </div>
-                                    </div>
-                                    {error && <p className="text-red-400 text-xs mt-2 text-center font-bold">{error}</p>}
-                                </section>
-                                <div className="h-10"></div>
-                            </div>
-                        )}
-
-                        {activeTab === 'grimoire' && (
-                            <div className="p-5 animate-in fade-in slide-in-from-right-10 duration-300">
-                                <div className="flex items-center justify-between mb-6">
-                                    <h2 className="text-xl font-black text-white flex items-center gap-2">
-                                        <Book className="text-indigo-400" /> الكتاب السحري
-                                    </h2>
-                                    <div className="bg-[#0a0a0a] p-1 rounded-xl flex border border-white/5">
-                                        <button 
-                                            onClick={() => { setGrimoireTab('history'); playSound('click'); }}
-                                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${grimoireTab === 'history' ? 'bg-[#222] text-white' : 'text-slate-500'}`}
-                                        >
-                                            السجل
-                                        </button>
-                                        <button 
-                                            onClick={() => { setGrimoireTab('saved'); playSound('click'); }}
-                                            className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${grimoireTab === 'saved' ? 'bg-[#222] text-amber-400' : 'text-slate-500'}`}
-                                        >
-                                            المحفوظات
-                                        </button>
+                                        <div className="absolute bottom-3 left-3 text-[10px] text-slate-600">{topic.length} حرف</div>
                                     </div>
                                 </div>
-                                
-                                {(grimoireTab === 'history' ? history : favorites).length === 0 ? (
-                                    <div className="flex flex-col items-center justify-center py-20 text-slate-700">
-                                        <Scroll size={48} className="mb-4 opacity-20" />
-                                        <p>القائمة فارغة</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-4">
-                                        {(grimoireTab === 'history' ? history : favorites).map((item) => (
-                                            <button
-                                                key={item.id}
-                                                onClick={() => loadItem(item)}
-                                                className={`w-full text-right bg-[#0a0a0a] p-4 rounded-2xl border active:scale-95 transition-transform hover:bg-[#111] relative ${grimoireTab === 'saved' ? 'border-amber-500/20' : 'border-white/5'}`}
-                                            >
-                                                <div className="flex justify-between items-center mb-2">
-                                                    <div className="flex gap-2">
-                                                        <span className="text-[10px] font-bold bg-white/5 text-slate-300 px-2 py-0.5 rounded-md">
-                                                            {platforms.find(p => p.id === item.platform)?.name}
-                                                        </span>
-                                                        {item.contentType && (
-                                                            <span className="text-[10px] font-bold bg-amber-500/10 text-amber-500 px-2 py-0.5 rounded-md">
-                                                                {contentTypes.find(c => c.id === item.contentType)?.name}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    {grimoireTab === 'saved' && <Star size={14} className="text-amber-400" fill="currentColor" />}
-                                                </div>
-                                                <p className="text-sm font-medium text-slate-300 line-clamp-2 leading-relaxed">
-                                                    {item.fullText}
-                                                </p>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </main>
 
-                    {/* Generate Button */}
-                    {activeTab === 'create' && (
-                        <div className="absolute bottom-20 left-0 right-0 p-5 bg-gradient-to-t from-black via-black to-transparent z-20 pointer-events-none">
-                            <button
-                                onClick={handleGenerate}
-                                disabled={isLoading}
-                                className={`pointer-events-auto w-full py-4 rounded-2xl font-black text-lg shadow-xl flex items-center justify-center gap-3 transition-all transform active:scale-95 ${
-                                    isLoading 
-                                    ? 'bg-[#1a1a1a] text-slate-500' 
-                                    : 'bg-gradient-to-r from-amber-400 to-orange-600 text-black shadow-amber-900/40'
-                                }`}
-                            >
-                                {isLoading ? <Loader2 className="animate-spin" /> : <Star className={`fill-current ${topic.trim() ? 'animate-spin-slow' : ''}`} />}
-                                <span>{isLoading ? 'جاري التحضير...' : 'أطلق التعويذة'}</span>
-                            </button>
-                        </div>
-                    )}
-
-                    {/* Navigation */}
-                    <nav className="shrink-0 h-[80px] bg-black border-t border-white/5 flex items-start justify-around pt-4 z-30 pb-safe">
-                        <button 
-                            onClick={() => switchTab('create')}
-                            className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'create' ? 'text-amber-400' : 'text-slate-600'}`}
-                        >
-                            <div className={`p-1 rounded-xl transition-all ${activeTab === 'create' ? 'bg-amber-400/10' : 'bg-transparent'}`}>
-                                <Home size={24} className={activeTab === 'create' ? 'fill-current' : ''} />
-                            </div>
-                            <span className="text-[10px] font-bold">الرئيسية</span>
-                        </button>
-
-                        <button 
-                            onClick={() => switchTab('grimoire')}
-                            className={`flex flex-col items-center gap-1 transition-colors ${activeTab === 'grimoire' ? 'text-indigo-400' : 'text-slate-600'}`}
-                        >
-                            <div className={`p-1 rounded-xl transition-all ${activeTab === 'grimoire' ? 'bg-indigo-400/10' : 'bg-transparent'}`}>
-                                <Book size={24} />
-                            </div>
-                            <span className="text-[10px] font-bold">الكتاب</span>
-                        </button>
-                    </nav>
-
-                    {/* Result Modal */}
-                    {showResult && (
-                        <div className="fixed inset-0 z-50 bg-black animate-in slide-in-from-bottom duration-300 flex flex-col max-w-md mx-auto">
-                            <div className="px-5 py-4 border-b border-white/10 flex items-center justify-between bg-black/90 backdrop-blur-md">
-                                <button onClick={closeResult} className="p-2 -mr-2 text-slate-400 hover:text-white">
-                                    <ChevronLeft size={28} />
-                                </button>
-                                <div className="flex bg-[#111] p-1 rounded-lg border border-white/10">
-                                    <button onClick={() => setResultViewMode('text')} className={`p-1.5 rounded-md transition-all ${resultViewMode === 'text' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>
-                                        <Type size={16} />
-                                    </button>
-                                    <button onClick={() => setResultViewMode('preview')} className={`p-1.5 rounded-md transition-all ${resultViewMode === 'preview' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>
-                                        <Eye size={16} />
-                                    </button>
-                                </div>
-                                <div className="w-8"></div>
-                            </div>
-
-                            <div className="flex-1 overflow-y-auto p-6 relative custom-scroll">
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-64 bg-indigo-500/10 blur-[100px] pointer-events-none"></div>
-                                
-                                {resultViewMode === 'text' ? (
-                                    <div className="relative z-10 bg-[#0a0a0a] border border-white/5 rounded-3xl p-6 shadow-2xl animate-in fade-in">
-                                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
-                                            <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
-                                                <Sparkles size={20} className="text-amber-400" />
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-slate-400">تم التوليد لـ</p>
-                                                <p className="font-bold text-white">{platforms.find(p => p.id === platform)?.name}</p>
-                                            </div>
-                                            <button 
-                                                onClick={() => {
-                                                    const currentItem = history.find(h => h.fullText === generatedContent) || { id: Date.now(), platform, fullText: generatedContent };
-                                                    toggleFavorite(currentItem);
-                                                }}
-                                                className={`mr-auto p-2 rounded-full ${favorites.some(f => f.fullText === generatedContent) ? 'text-amber-400 bg-amber-400/10' : 'text-slate-600'}`}
-                                            >
-                                                <Heart size={20} fill={favorites.some(f => f.fullText === generatedContent) ? "currentColor" : "none"} />
-                                            </button>
-                                        </div>
-                                        <div className="prose prose-invert max-w-none">
-                                            <p className="whitespace-pre-line text-lg font-medium leading-loose text-slate-200">{generatedContent}</p>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div className="relative z-10 animate-in fade-in zoom-in-95">
-                                        <PlatformPreview content={generatedContent} platformId={platform} />
-                                        <p className="text-center text-xs text-slate-600 mt-4">هذه معاينة تقريبية لشكل المنشور</p>
-                                    </div>
-                                )}
-                                <div className="h-24"></div>
-                            </div>
-
-                            <div className="absolute bottom-0 left-0 right-0 p-5 bg-black border-t border-white/10 flex gap-3">
+                                {/* Generate Button */}
                                 <button
-                                    onClick={copyToClipboard}
-                                    className={`flex-1 py-4 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${
-                                        copied ? 'bg-green-500 text-black' : 'bg-white text-black active:bg-slate-200'
+                                    onClick={handleGenerate}
+                                    disabled={isLoading}
+                                    className={`w-full py-4 rounded-xl font-bold text-lg shadow-xl flex items-center justify-center gap-3 transition-all transform active:scale-95 group ${
+                                        isLoading 
+                                        ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
+                                        : 'bg-gradient-to-r from-amber-400 to-orange-600 text-black hover:shadow-amber-500/20'
                                     }`}
                                 >
-                                    {copied ? <Check /> : <Copy />}
-                                    <span>{copied ? 'تم النسخ' : 'نسخ النص'}</span>
+                                    {isLoading ? (
+                                        <><Icons.Loader2 className="animate-spin" /> جاري التحضير...</>
+                                    ) : (
+                                        <><Icons.Sparkles className="group-hover:animate-pulse" /> توليد المحتوى</>
+                                    )}
                                 </button>
-                                <button onClick={closeResult} className="px-5 py-4 rounded-xl font-bold bg-[#0a0a0a] border border-white/10 text-slate-300 hover:bg-[#111]">
-                                    <X />
-                                </button>
+                                {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+                            </div>
+                        </section>
+
+                        {/* RIGHT: Output Console */}
+                        <aside className={`fixed inset-0 lg:static lg:inset-auto z-40 lg:w-[400px] lg:border-r lg:border-white/5 bg-[#020617] lg:bg-[#050b1d]/30 flex flex-col transition-transform duration-300 ${generatedContent || window.innerWidth >= 1024 ? 'translate-x-0' : 'translate-x-full lg:translate-x-0'}`}>
+                            
+                            {/* Mobile Close Header */}
+                            <div className="lg:hidden p-4 border-b border-white/10 flex items-center justify-between">
+                                <h3 className="font-bold text-white">النتيجة</h3>
+                                <button onClick={() => setGeneratedContent('')}><Icons.X /></button>
+                            </div>
+
+                            {!generatedContent ? (
+                                <div className="flex-1 flex flex-col items-center justify-center text-slate-600 p-8 text-center opacity-50">
+                                    <div className="w-24 h-24 rounded-full bg-white/5 flex items-center justify-center mb-4 animate-float">
+                                        <Icons.Bot size={48} className="text-slate-700" />
+                                    </div>
+                                    <p className="text-sm">أدخل البيانات واضغط على "توليد"<br/>ليبدأ السحر</p>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex flex-col h-full overflow-hidden">
+                                    {/* Toolbar */}
+                                    <div className="p-4 border-b border-white/5 flex justify-between items-center bg-black/20">
+                                        <div className="flex bg-white/5 p-1 rounded-lg border border-white/5">
+                                            <button onClick={() => setViewMode('text')} className={`p-1.5 rounded px-3 text-xs font-bold transition-all ${viewMode === 'text' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>نص</button>
+                                            <button onClick={() => setViewMode('preview')} className={`p-1.5 rounded px-3 text-xs font-bold transition-all ${viewMode === 'preview' ? 'bg-white/10 text-white' : 'text-slate-500'}`}>معاينة</button>
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => {
+                                                    const current = history.find(h => h.fullText === generatedContent) || { id: Date.now(), fullText: generatedContent, platform, contentType, topic };
+                                                    toggleFavorite(current);
+                                                }}
+                                                className={`p-2 rounded-lg border border-white/5 ${favorites.some(f => f.fullText === generatedContent) ? 'text-amber-400 bg-amber-400/10' : 'text-slate-500 hover:text-white'}`}
+                                            >
+                                                <Icons.Star size={18} fill={favorites.some(f => f.fullText === generatedContent) ? "currentColor" : "none"} />
+                                            </button>
+                                            <button 
+                                                onClick={() => { navigator.clipboard.writeText(generatedContent); playSound('success'); }}
+                                                className="p-2 rounded-lg bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 hover:bg-indigo-500/20"
+                                            >
+                                                <Icons.Copy size={18} />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {/* Content Area */}
+                                    <div className="flex-1 overflow-y-auto p-6 custom-scroll">
+                                        {viewMode === 'text' ? (
+                                            <div className="bg-white/5 border border-white/5 rounded-2xl p-6 relative group">
+                                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-amber-500 to-transparent opacity-50"></div>
+                                                <div className="prose prose-invert prose-p:text-slate-300 prose-headings:text-amber-400 max-w-none whitespace-pre-line leading-8 font-medium">
+                                                    {generatedContent}
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <PlatformPreview content={generatedContent} platformId={platform} />
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </aside>
+                    </main>
+
+                    {/* Settings Modal */}
+                    {showSettings && (
+                        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-xl flex items-center justify-center p-4">
+                            <div className="w-full max-w-md bg-[#0f172a] border border-white/10 rounded-2xl p-8 shadow-2xl relative">
+                                <button onClick={() => apiKey && setShowSettings(false)} className="absolute top-4 right-4 text-slate-500 hover:text-white"><Icons.X /></button>
+                                
+                                <div className="text-center mb-8">
+                                    <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-600 flex items-center justify-center shadow-lg mx-auto mb-4">
+                                        <Icons.Key size={32} className="text-black" />
+                                    </div>
+                                    <h2 className="text-2xl font-bold text-white mb-2">مفتاح الدخول</h2>
+                                    <p className="text-slate-400 text-sm">للبدء، يرجى إدخال مفتاح Google Gemini API الخاص بك.</p>
+                                </div>
+                                
+                                <div className="space-y-4">
+                                    <input 
+                                        type="password" 
+                                        placeholder="AIzaSy..." 
+                                        className="w-full p-4 rounded-xl bg-black border border-white/10 text-white focus:border-amber-500 focus:outline-none transition-colors"
+                                        onChange={(e) => setApiKey(e.target.value)}
+                                        value={apiKey}
+                                    />
+                                    <button 
+                                        onClick={() => { localStorage.setItem('gemini_api_key', apiKey); setShowSettings(false); playSound('success'); }}
+                                        className="w-full py-4 rounded-xl bg-white text-black font-bold hover:bg-slate-200 transition-colors"
+                                    >
+                                        حفظ وبدء السحر
+                                    </button>
+                                </div>
+                                <p className="mt-6 text-center text-[10px] text-slate-600">يتم حفظ المفتاح في متصفحك فقط ولا يتم إرساله لأي خادم آخر.</p>
                             </div>
                         </div>
                     )}
@@ -834,7 +649,7 @@
         };
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<SocialWizardMobile />);
+        root.render(<SocialWizardWeb />);
     </script>
 </body>
 </html>
